@@ -1,0 +1,1403 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-grad: linear-gradient(135deg, #eef5ff 0%, #f7f0fb 45%, #ffffff 100%);
+    --panel: rgba(255,255,255,0.35);
+    --panel-2: rgba(255,255,255,0.55);
+    --panel-strong: rgba(255,255,255,0.6);
+    --line: rgba(255,255,255,0.6);
+    --field-border: rgba(30,30,30,0.16);
+    --hairline: rgba(30,30,30,0.08);
+    --text: #1E1E1E;
+    --text-dim: #6C757D;
+    --teal: #2FAF9B;
+    --amber: #E8A33D;
+    --red: #E8544A;
+    --blue: #6FA3E0;
+    --glow-a: #A9D6F5;
+    --glow-b: #C9B6E4;
+    --radius: 20px;
+    --shadow-float: 0px 8px 32px 0px rgba(31, 38, 135, 0.07);
+    --shadow-float-lg: 0px 12px 48px 0px rgba(31, 38, 135, 0.10);
+  }
+  *{ box-sizing: border-box; }
+  body{ margin:0; padding:0; background: var(--bg-grad); }
+  #app{
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text);
+    background: transparent;
+    min-height: 100%;
+    display:flex; flex-direction:column;
+  }
+  .mono{ font-family: 'JetBrains Mono', monospace; }
+  .display{ font-family: 'Space Grotesk', sans-serif; }
+
+  /* Topbar: floating glass pill, inset from the edges */
+  .topbar{
+    display:flex; align-items:center; gap:18px;
+    padding: 12px 20px;
+    margin: 16px 20px 8px 20px;
+    background: var(--panel-2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 22px;
+    box-shadow: var(--shadow-float);
+  }
+  .brand{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 17px; letter-spacing: 0.2px;
+    display:flex; align-items:center; gap:8px;
+    color: var(--text);
+  }
+  .brand .dot{ width:9px; height:9px; border-radius:50%;
+    background: conic-gradient(var(--teal), var(--amber), var(--red)); }
+  .tabs{ display:flex; gap:4px; flex:1; }
+  .tab-btn{
+    font-family: 'Space Grotesk', sans-serif;
+    background: transparent; border: none; color: var(--text-dim);
+    padding: 8px 14px; border-radius: 14px; font-size: 13.5px; font-weight:600;
+    cursor:pointer; transition: all .18s ease;
+  }
+  .tab-btn:hover{ color: var(--text); background: rgba(255,255,255,0.4); }
+  .tab-btn.active{ color: var(--text); background: rgba(255,255,255,0.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8); }
+  .add-btn{
+    position: relative;
+    font-family: 'Space Grotesk', sans-serif;
+    background: rgba(255,255,255,0.55); color: var(--text); border:1px solid transparent;
+    padding: 9px 18px; border-radius: 16px; font-weight:700; font-size:13.5px;
+    cursor:pointer; display:flex; align-items:center; gap:6px;
+    box-shadow: var(--shadow-float);
+    transition: all .18s ease;
+    background-clip: padding-box;
+  }
+  .add-btn::before{
+    content:''; position:absolute; inset:-1px; border-radius:16px; padding:1px;
+    background: linear-gradient(120deg, var(--glow-a), var(--glow-b));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; z-index:-1; opacity:.9;
+  }
+  .add-btn:hover{ transform: translateY(-2px); box-shadow: var(--shadow-float-lg); }
+
+  .page{ flex:1; padding: 12px 24px 28px 24px; overflow:auto; }
+  .hidden{ display:none !important; }
+
+  .empty-state{
+    color: var(--text-dim); text-align:center; padding: 60px 20px;
+    font-size: 14px; line-height:1.7;
+  }
+  .empty-state b{ color: var(--text); }
+
+  /* ---------- Page 1: Timeline ---------- */
+  .tl-controls{
+    display:flex; align-items:center; gap:10px; margin-bottom:16px;
+  }
+  .tl-arrow{
+    background: var(--panel-2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border:1px solid var(--field-border); color: var(--text);
+    width:32px; height:32px; border-radius:12px; cursor:pointer; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: var(--shadow-float);
+    transition: all .15s ease;
+  }
+  .tl-arrow:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.7); }
+  .tl-today-btn{
+    background: var(--panel-2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border:1px solid var(--field-border); color: var(--text-dim);
+    padding: 6px 14px; border-radius:14px; cursor:pointer; font-size:12.5px; font-family:'Space Grotesk',sans-serif; font-weight:600;
+  }
+  .tl-today-btn:hover{ color: var(--text); background: rgba(255,255,255,0.7); }
+  .tl-range-label{ color: var(--text-dim); font-size:12.5px; margin-left:4px; }
+
+  .tl-wrap{
+    overflow-x:auto; border:1px solid rgba(255,255,255,0.5); border-radius: var(--radius);
+    background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-float);
+  }
+  .tl-grid{ position:relative; }
+  .tl-header-row{ display:flex; border-bottom:1px solid var(--hairline); position:sticky; top:0; background:rgba(255,255,255,0.55); backdrop-filter: blur(16px); z-index:2; }
+  .tl-label-col{ width:150px; min-width:150px; flex-shrink:0; border-right:1px solid var(--hairline); padding:8px 12px; color:var(--text-dim); font-size:11.5px; font-weight:600; }
+  .tl-stars{ margin-top:3px; }
+  .tl-score-col{
+    width:78px; min-width:78px; flex-shrink:0; border-right:1px solid var(--hairline);
+    padding:8px 8px; color: var(--text); font-size:12px; font-weight:700; text-align:center;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tl-day-col{
+    width:64px; min-width:64px; flex-shrink:0; text-align:center; padding:8px 4px;
+    border-right: 1px solid var(--hairline); font-size:11px; color:var(--text-dim);
+    position:relative;
+  }
+  .tl-day-col.is-today{ background: rgba(111,163,224,.15); color: var(--blue); font-weight:700; }
+  .tl-day-col.is-today::after{
+    content:''; position:absolute; left:var(--now-line-left, 50%); bottom:0; height:6px; width:0;
+    border-left:1.5px dashed rgba(30,30,30,0.35); transform:translateX(-50%); pointer-events:none;
+  }
+  .tl-day-col .dow{ font-size:9.5px; opacity:.8; }
+  .tl-body-row{ display:flex; border-bottom:1px solid var(--hairline); min-height:40px; }
+  .tl-body-row:last-child{ border-bottom:none; }
+  .tl-body-row:hover{ background: rgba(255,255,255,.25); }
+  .tl-track{ position:relative; display:flex; }
+  .tl-day-cell{ width:64px; min-width:64px; flex-shrink:0; border-right:1px solid var(--hairline); position:relative; }
+  .tl-day-cell.is-today{ background: rgba(111,163,224,.08); }
+  .tl-day-cell.is-today::after{
+    content:''; position:absolute; left:var(--now-line-left, 50%); top:0; bottom:0; width:0;
+    border-left:1.5px dashed rgba(30,30,30,0.35);
+    transform:translateX(-50%); z-index:1; pointer-events:none;
+  }
+  .tl-bar{
+    position:absolute; top:6px; bottom:6px; border-radius:10px;
+    display:flex; align-items:center; padding:0 8px; font-size:11.5px; font-weight:600;
+    color:#1E1E1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    cursor:pointer; box-shadow: 0px 4px 14px rgba(31,38,135,0.12);
+    border: 1px solid rgba(255,255,255,0.6);
+    z-index:2;
+  }
+  .tl-bar:hover{ filter:brightness(1.04); transform: translateY(-1px); box-shadow: 0px 8px 20px rgba(31,38,135,0.18); }
+
+  /* ---------- Page 2: Quadrant ---------- */
+  .quad-wrap{ display:flex; gap:24px; flex-wrap:wrap; }
+  .quad-svg-box{
+    background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border:1px solid rgba(255,255,255,0.5); border-radius: var(--radius); padding:18px;
+    box-shadow: var(--shadow-float);
+  }
+  .quad-legend{ min-width:220px; color: var(--text-dim); font-size:12.5px; line-height:1.9; }
+  .quad-legend .lg-title{ color: var(--text); font-weight:700; font-family:'Space Grotesk',sans-serif; margin-bottom:8px; font-size:13px;}
+  .legend-scale{ height:10px; border-radius:5px; margin: 8px 0; background: linear-gradient(90deg, var(--teal), var(--amber), var(--red)); }
+  .quad-point{ cursor:pointer; }
+  .quad-point:hover circle{ stroke:#1E1E1E; stroke-width:2; }
+  .quad-tooltip{
+    position:absolute; background:rgba(30,30,30,0.85); color:#fff; padding:5px 9px; border-radius:8px;
+    font-size:11.5px; pointer-events:none; opacity:0; transition:opacity .1s; white-space:nowrap; z-index:10;
+    border:1px solid rgba(255,255,255,0.2); backdrop-filter: blur(6px);
+  }
+
+  /* ---------- Page 3: List ---------- */
+  .list-toolbar{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .list-toolbar-label{ font-size:12.5px; color: var(--text-dim); font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .list-sort-select{
+    background: var(--panel-2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border:1px solid var(--field-border); color: var(--text);
+    padding: 7px 12px; border-radius:14px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer;
+  }
+  .list-header-row{
+    display:grid; align-items:center; column-gap:16px; padding: 6px 16px;
+    color: var(--text-dim); font-size:11px; font-weight:700; font-family:'Space Grotesk',sans-serif;
+    letter-spacing:.3px;
+  }
+  .star-row{ display:inline-flex; gap:1px; letter-spacing:-1px; }
+
+  /* ---------- Page 4: Weights ---------- */
+  .weights-card{
+    background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border:1px solid rgba(255,255,255,0.5); border-radius: var(--radius); padding: 26px 28px; max-width: 720px;
+    box-shadow: var(--shadow-float);
+  }
+  .weights-explainer{ color: var(--text-dim); font-size:12.5px; line-height:1.8; margin-bottom:16px; white-space:pre-wrap; }
+  .weights-current{ font-size:15px; font-weight:600; color: var(--text); margin-bottom:24px; font-family:'Space Grotesk',sans-serif; }
+  .weights-edit-title{ font-size:13px; font-weight:700; color: var(--text-dim); font-family:'Space Grotesk',sans-serif; margin-bottom:10px; }
+  .weights-edit-formula{ font-size:14.5px; line-height:2.6; color: var(--text); }
+  .weight-input{
+    width: 64px; background: rgba(255,255,255,0.6); border:1px solid var(--field-border); color: var(--text);
+    padding: 5px 8px; border-radius:10px; font-size:13.5px; text-align:center;
+  }
+  .weight-input:focus{ outline:none; border-color: var(--blue); }
+
+  /* ---------- Page 5: Guide (使用說明) ---------- */
+  .guide-page{ display:flex; flex-direction:column; gap:18px; max-width: 780px; }
+  .guide-card{
+    background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border:1px solid rgba(255,255,255,0.5); border-radius: var(--radius); padding: 22px 26px;
+    box-shadow: var(--shadow-float);
+  }
+  .guide-intro{ font-size:15.5px; font-weight:600; color: var(--text); line-height:1.9; font-family:'Space Grotesk',sans-serif; }
+  .guide-title{
+    font-size:14.5px; font-weight:700; color: var(--text); margin-bottom:10px;
+    font-family:'Space Grotesk',sans-serif; display:flex; align-items:center; gap:8px;
+  }
+  .guide-title::before{
+    content:''; width:8px; height:8px; border-radius:50%; flex-shrink:0;
+    background: linear-gradient(120deg, var(--glow-a), var(--glow-b));
+  }
+  .guide-body{ font-size:13.5px; color: var(--text); line-height:1.9; margin-bottom:12px; }
+  .guide-note{
+    background: rgba(255,255,255,0.4);
+    border-left: 3px solid var(--blue);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size:12.5px;
+    color: var(--text-dim);
+    line-height:1.8;
+    margin-top:8px;
+  }
+  .guide-note b{ color: var(--text); }
+  .guide-note:first-of-type{ margin-top:2px; }
+
+  .list-section-title{
+    font-family:'Space Grotesk',sans-serif; font-size:13.5px; color: var(--text-dim);
+    margin: 0 0 10px 2px; display:flex; align-items:center; gap:8px; text-transform:none;
+  }
+  .list-count{
+    background: rgba(255,255,255,0.5); border:1px solid var(--line); color: var(--text);
+    font-size:11px; padding:1px 8px; border-radius:20px; font-family:'JetBrains Mono',monospace;
+  }
+  .list-table{
+    background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border:1px solid rgba(255,255,255,0.5); border-radius: var(--radius); overflow:hidden;
+    box-shadow: var(--shadow-float);
+  }
+  .list-row{
+    display:grid; align-items:center; column-gap:16px; padding: 12px 16px;
+    border-bottom:1px solid var(--hairline); cursor:pointer; transition: background .15s ease;
+  }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row:hover{ background: rgba(255,255,255,0.35); }
+  .list-cell{ min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .list-dim{ color: var(--text-dim); font-size:12px; }
+  .list-name{ font-weight:600; font-size:14px; color: var(--text); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .status-chip{
+    display:inline-block;
+    font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; font-family:'Space Grotesk',sans-serif;
+  }
+  .chip-added{ background: rgba(111,163,224,.18); color: #3E6FA8; }
+  .chip-doing{ background: rgba(232,163,61,.18); color: #A56C1D; }
+  .chip-done{ background: rgba(47,175,155,.18); color: #1E7A69; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(255,255,255,.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-box{
+    background: var(--panel-strong); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border:1px solid rgba(255,255,255,0.6); border-radius: 24px;
+    width:100%; max-width:560px; max-height:88vh; overflow:auto; padding:24px;
+    box-shadow: var(--shadow-float-lg);
+  }
+  .modal-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:0 0 18px 0; display:flex; justify-content:space-between; align-items:center; color: var(--text); }
+  .modal-close{ background:none; border:none; color: var(--text-dim); font-size:20px; cursor:pointer; line-height:1; }
+  .modal-close:hover{ color: var(--text); }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; font-weight:700; color: var(--text-dim); margin-bottom:6px; font-family:'Space Grotesk',sans-serif; letter-spacing:.2px; }
+  .field input[type=text], .field textarea, .field input[type=datetime-local]{
+    width:100%; background: rgba(255,255,255,0.55); border:1px solid var(--field-border); color: var(--text);
+    padding: 9px 11px; border-radius:14px; font-size:13.5px; font-family:'Inter',sans-serif;
+  }
+  .field input:focus, .field textarea:focus{ outline:none; border-color: var(--blue); }
+  .field textarea{ min-height:70px; resize:vertical; font-family:'Inter',sans-serif; }
+  .field.invalid input, .field.invalid textarea{ border-color: var(--red); }
+  .err-text{ color: var(--red); font-size:11.5px; margin-top:5px; }
+
+  .importance-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .imp-btn{
+    background: rgba(255,255,255,0.45); border:1px solid var(--field-border); color: var(--text-dim);
+    padding: 10px 8px; border-radius:14px; cursor:pointer; font-size:12.5px; font-weight:600; text-align:center;
+    transition: all .15s ease;
+  }
+  .imp-btn:hover{ border-color: var(--blue); transform: translateY(-1px); }
+  .imp-btn.selected{ background: var(--blue); border-color: var(--blue); color:white; }
+
+  .scale-btn{
+    background: rgba(255,255,255,0.45); border:1px solid var(--field-border); color: var(--text-dim);
+    padding: 10px 8px; border-radius:14px; cursor:pointer; font-size:12.5px; font-weight:600; text-align:center;
+    transition: all .15s ease;
+  }
+  .scale-btn:hover{ border-color: var(--blue); transform: translateY(-1px); }
+  .scale-btn.selected{ background: var(--blue); border-color: var(--blue); color:white; }
+
+  .status-badge{
+    display:inline-block; padding:4px 11px; border-radius:20px; font-size:11.5px; font-weight:700;
+    font-family:'Space Grotesk',sans-serif;
+  }
+
+  .subrecord-panel{ margin-top:20px; border-top:1px solid var(--hairline); padding-top:16px; }
+  .subrecord-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .subrecord-header h4{ margin:0; font-size:13.5px; font-family:'Space Grotesk',sans-serif; color: var(--text); }
+  .sr-add-btn{
+    background: rgba(255,255,255,0.5); border:1px solid var(--field-border); color: var(--text); font-size:12px;
+    padding: 6px 12px; border-radius:12px; cursor:pointer; font-weight:600;
+  }
+  .sr-add-btn:hover{ border-color: var(--blue); }
+  .sr-row{ display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--hairline); }
+  .sr-row:last-child{ border-bottom:none; }
+  .sr-ts{ width:132px; flex-shrink:0; color: var(--text-dim); font-size:11px; padding-top:8px; }
+  .sr-content{ flex:1; font-size:13px; padding-top:6px; white-space:pre-wrap; color: var(--text); }
+  .sr-new-row textarea{
+    flex:1; background: rgba(255,255,255,0.55); border:1px solid var(--field-border); color:var(--text);
+    border-radius:12px; padding:7px 9px; font-size:13px; min-height:40px; font-family:'Inter',sans-serif;
+  }
+  .sr-save-btn{
+    background: var(--teal); border:none; color:#06110f; font-weight:700; font-size:12px;
+    padding: 8px 14px; border-radius:12px; cursor:pointer; flex-shrink:0; height:fit-content;
+  }
+  .sr-save-btn:hover{ filter:brightness(1.1); }
+
+  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:22px; }
+  .btn-primary{ background: var(--blue); color:white; border:none; padding:10px 20px; border-radius:14px; font-weight:700; font-size:13.5px; cursor:pointer; box-shadow: var(--shadow-float); transition: all .15s ease; }
+  .btn-primary:hover{ transform: translateY(-1px); box-shadow: var(--shadow-float-lg); }
+  .btn-ghost{ background:rgba(255,255,255,0.4); color: var(--text-dim); border:1px solid var(--field-border); padding:10px 20px; border-radius:14px; font-weight:600; font-size:13.5px; cursor:pointer; }
+  .btn-ghost:hover{ color: var(--text); border-color: var(--text-dim); }
+  .btn-complete{ background: var(--teal); color:#06110f; border:none; padding:9px 18px; border-radius:14px; font-weight:700; font-size:12.5px; cursor:pointer; margin-top:14px; box-shadow: var(--shadow-float); }
+  .btn-complete:hover{ filter:brightness(1.06); transform: translateY(-1px); }
+  .btn-delete{ background: rgba(255,255,255,0.4); color: var(--red); border:1px solid var(--red); padding:9px 18px; border-radius:14px; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .btn-delete:hover{ background: rgba(232,84,74,.12); }
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+  const IMPORTANCE_LABELS = {1:'可有可無', 2:'記得處理', 3:'有點重要', 4:'非常重要'};
+  const STATUS = { ADDED:'已添加', DOING:'處理中', DONE:'已完成' };
+  const DEFAULT_WEIGHTS = { w1: 1.0, w2: 1.0, w3: 0.2, w4: 1.0 };
+
+  let state = {
+    tasks: [],
+    weights: { ...DEFAULT_WEIGHTS },
+    tab: 'timeline',
+    timelineOffsetDays: 0, // paged in weeks relative to today
+    listSortMode: 'added', // 'added' | 'value' | 'preempt'
+    loaded: false,
+    storageAvailable: true
+  };
+
+  // ---------- storage ----------
+  async function loadTasks(){
+    if (typeof window.storage === 'undefined'){
+      state.storageAvailable = false;
+      state.tasks = [];
+      state.loaded = true;
+      return;
+    }
+    try{
+      const res = await window.storage.get('tasks', false);
+      state.tasks = res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){
+      // key not found yet is expected on first-ever run; storage itself is still available
+      state.tasks = [];
+    }
+    try{
+      const wres = await window.storage.get('weights', false);
+      if (wres && wres.value){
+        const parsed = JSON.parse(wres.value);
+        state.weights = { ...DEFAULT_WEIGHTS, ...parsed };
+      }
+    }catch(e){
+      // no saved weights yet, keep defaults
+    }
+    state.loaded = true;
+  }
+  async function saveTasks(){
+    if (typeof window.storage === 'undefined'){
+      state.storageAvailable = false;
+      return;
+    }
+    try{
+      await window.storage.set('tasks', JSON.stringify(state.tasks), false);
+    }catch(e){ console.error('storage save failed', e); }
+  }
+  async function saveWeights(){
+    if (typeof window.storage === 'undefined'){
+      state.storageAvailable = false;
+      return;
+    }
+    try{
+      await window.storage.set('weights', JSON.stringify(state.weights), false);
+    }catch(e){ console.error('storage save failed', e); }
+  }
+
+  function uid(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+
+  // ---------- date helpers ----------
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function toDatetimeLocalValue(d){
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function fmtDateTime(iso){
+    const d = new Date(iso);
+    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function midnight(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+  function dayIndexFrom(base, d){ return Math.round((midnight(d) - midnight(base)) / 86400000); }
+
+  // ---------- scoring ----------
+  function importantScore(task){ return task.importance; } // 1-4, never shown to user
+  function remainDays(task){
+    return (new Date(task.deadline) - new Date()) / 86400000; // 1.0 == one full day remaining
+  }
+  function missionScale(task){ return task.mission_scale || 1; }
+  function urgentScoreRaw(task){
+    const rd = remainDays(task);
+    if (rd < 0) return null; // overdue
+    const scale = missionScale(task);
+    if (rd > scale) return (5 / rd) * scale;
+    return (-5 * rd) / scale + 10; // 0 <= rd <= scale
+  }
+  function urgentScoreForFormula(task){
+    const raw = urgentScoreRaw(task);
+    return raw === null ? 10 : raw; // overdue tasks are treated as maximally urgent
+  }
+  function agingScore(task){
+    const diffMinutes = (new Date() - new Date(task.createdAt)) / 60000;
+    return diffMinutes / 1440; // 1.0 == one full day since creation
+  }
+  function preemptScore(task){ return task.preempt_score || 0; }
+  function computeValue(task, weights){
+    return importantScore(task) * weights.w1
+         + urgentScoreForFormula(task) * weights.w2
+         + agingScore(task) * weights.w3
+         + preemptScore(task) * weights.w4;
+  }
+  const MISSION_SCALE_LABELS = {1:'小任務 (< 30 mins)', 2:'普通任務 (< 2 hrs)', 3:'中等任務 (< 6 hrs)', 4:'大型任務 (> 1 day)'};
+  const MISSION_SCALE_SHORT = {1:'小', 2:'普', 3:'中', 4:'大'};
+
+  function remainingHours(task){ return remainDays(task) * 24; } // can be negative if overdue
+
+  function formatDurationAbs(hoursAbs){
+    if (hoursAbs >= 24){
+      const days = Math.floor(hoursAbs / 24);
+      let remH = Math.round(hoursAbs - days * 24);
+      if (remH >= 24) return `${days+1}天0小時`;
+      return remH > 0 ? `${days}天${remH}小時` : `${days}天`;
+    }
+    const rounded = Math.round(hoursAbs * 2) / 2; // nearest half hour
+    const str = Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+    return `${str}小時`;
+  }
+
+  function formatRemainingTime(task){
+    const h = remainingHours(task);
+    if (h < 0) return `已逾期 ${formatDurationAbs(-h)}`;
+    return formatDurationAbs(h);
+  }
+  function starsHtml(score, size){
+    size = size || 13;
+    let html = '<span class="star-row">';
+    for (let i=1;i<=5;i++){
+      html += `<span style="font-size:${size}px;color:${i<=score?'#e8c53d':'#D8DCE3'};">★</span>`;
+    }
+    html += '</span>';
+    return html;
+  }
+  function urgencyColor(score){ // score 0..10 (see urgentScoreRaw / urgentScoreForFormula)
+    const t = Math.max(0, Math.min(1, score / 10));
+    // teal -> amber -> red
+    if (t < 0.5) return lerpColor('#2FAF9B', '#e8a33d', t/0.5);
+    return lerpColor('#e8a33d', '#e8544a', (t-0.5)/0.5);
+  }
+  function lerpColor(a,b,t){
+    const pa = hexToRgb(a), pb = hexToRgb(b);
+    const r = Math.round(pa.r + (pb.r-pa.r)*t);
+    const g = Math.round(pa.g + (pb.g-pa.g)*t);
+    const bl = Math.round(pa.b + (pb.b-pa.b)*t);
+    return `rgb(${r},${g},${bl})`;
+  }
+  function hexToRgb(hex){
+    const v = hex.replace('#','');
+    return { r: parseInt(v.substr(0,2),16), g: parseInt(v.substr(2,2),16), b: parseInt(v.substr(4,2),16) };
+  }
+
+  function resolveCollisions(points, minX, maxX, minY, maxY){
+    const placed = [];
+    points.forEach(p => {
+      let x = p.cx, y = p.cy;
+      const ox = x, oy = y;
+      let attempt = 0;
+      while (attempt < 80){
+        const collide = placed.some(q => {
+          const dx = x - q.cx, dy = y - q.cy;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          return dist < (p.r + q.r) * 0.8 + 3;
+        });
+        if (!collide) break;
+        attempt++;
+        const angle = attempt * 137.508 * Math.PI / 180; // golden angle spiral
+        const radius = 3 + attempt * 2.5;
+        x = Math.min(maxX, Math.max(minX, ox + radius * Math.cos(angle)));
+        y = Math.min(maxY, Math.max(minY, oy + radius * Math.sin(angle)));
+      }
+      p.cx = x; p.cy = y;
+      placed.push(p);
+    });
+    return points;
+  }
+
+  function statusChipClass(status){
+    if (status===STATUS.ADDED) return 'chip-added';
+    if (status===STATUS.DOING) return 'chip-doing';
+    return 'chip-done';
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n)+'…' : s; }
+
+  // ---------- render root ----------
+  function render(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      <div class="topbar">
+        <div class="brand"><span class="dot"></span>任務追蹤台</div>
+        <div class="tabs">
+          <button class="tab-btn ${state.tab==='timeline'?'active':''}" data-tab="timeline">時間軸</button>
+          <button class="tab-btn ${state.tab==='quadrant'?'active':''}" data-tab="quadrant">象限圖</button>
+          <button class="tab-btn ${state.tab==='list'?'active':''}" data-tab="list">列表</button>
+          <button class="tab-btn ${state.tab==='weights'?'active':''}" data-tab="weights">權重公式調整</button>
+          <button class="tab-btn ${state.tab==='guide'?'active':''}" data-tab="guide">使用說明</button>
+        </div>
+        <button class="add-btn" id="openNewTaskBtn">＋ 新增任務</button>
+      </div>
+      ${!state.storageAvailable ? `<div style="background:rgba(232,84,74,0.12);color:#B23B36;padding:8px 20px;font-size:12.5px;border-bottom:1px solid rgba(232,84,74,0.25);backdrop-filter:blur(10px);">
+        ⚠️ 目前偵測不到雲端儲存，資料只會保留在這個分頁記憶體中，重新整理後會消失。請在 Claude 對話中以「artifact 預覽」方式開啟本頁，而不是下載後直接用瀏覽器開啟檔案，才能讓資料跨裝置/重新整理保留。
+      </div>` : ''}
+      <div class="page" id="pageBody"></div>
+    `;
+    document.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.onclick = () => { state.tab = btn.dataset.tab; render(); };
+    });
+    document.getElementById('openNewTaskBtn').onclick = openNewTaskModal;
+
+    const pageBody = document.getElementById('pageBody');
+    if (state.tab==='timeline') pageBody.innerHTML = renderTimelinePage();
+    else if (state.tab==='quadrant') pageBody.innerHTML = renderQuadrantPage();
+    else if (state.tab==='list') pageBody.innerHTML = renderListPage();
+    else if (state.tab==='weights') pageBody.innerHTML = renderWeightsPage();
+    else pageBody.innerHTML = renderGuidePage();
+
+    if (state.tab==='timeline') bindTimelineEvents();
+    if (state.tab==='quadrant') bindQuadrantEvents();
+    if (state.tab==='list') bindListEvents();
+    if (state.tab==='weights') bindWeightsEvents();
+  }
+
+  // ---------- PAGE 1: TIMELINE ----------
+  const TL_WINDOW_DAYS = 15; // total days shown
+  const TL_DAYS_BEFORE = 3; // days shown before today (today sits closer to the left edge)
+  const TL_DAY_W = 64;
+
+  function nowLinePercent(){
+    const now = new Date();
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    const rounded = Math.round(minutes / 30) * 30; // nearest half-hour
+    return Math.min(100, (rounded / 1440) * 100);
+  }
+
+  function renderTimelinePage(){
+    const activeTasks = state.tasks.filter(t => (t.status===STATUS.ADDED || t.status===STATUS.DOING));
+    const visible = activeTasks
+      .map(t => ({ task: t, urgent: urgentScoreRaw(t), value: computeValue(t, state.weights) }))
+      .filter(x => x.urgent !== null); // overdue tasks show no block, so we omit them from this view
+
+    visible.sort((a,b) => b.value - a.value);
+
+    const today = new Date();
+    const nowPct = nowLinePercent();
+    const centerDate = addDays(today, state.timelineOffsetDays);
+    const windowStart = addDays(midnight(centerDate), -TL_DAYS_BEFORE);
+    const days = Array.from({length: TL_WINDOW_DAYS}, (_,i) => addDays(windowStart, i));
+    const dow = ['日','一','二','三','四','五','六'];
+
+    let headerCells = days.map(d => {
+      const isToday = midnight(d).getTime() === midnight(today).getTime();
+      const style = isToday ? ` style="--now-line-left:${nowPct}%;"` : '';
+      return `<div class="tl-day-col ${isToday?'is-today':''}"${style}>
+        <div>${d.getMonth()+1}/${d.getDate()}</div>
+        <div class="dow">週${dow[d.getDay()]}</div>
+      </div>`;
+    }).join('');
+
+    let rows = '';
+    if (visible.length === 0){
+      rows = `<div class="empty-state">目前沒有可顯示的任務區塊。<br/>（已逾期或已完成的任務不會顯示在時間軸上）</div>`;
+    } else {
+      const HALF_HOUR_MS = 30 * 60 * 1000;
+      const SLOTS_PER_DAY = 48; // 24h / 30min
+      const slotW = TL_DAY_W / SLOTS_PER_DAY;
+      const totalSlots = TL_WINDOW_DAYS * SLOTS_PER_DAY;
+
+      rows = visible.map(({task, urgent, value}) => {
+        // round to nearest half-hour slot so the bar reflects actual start/end clock time, not just the whole day
+        const startSlot = Math.round((new Date(task.createdAt) - windowStart) / HALF_HOUR_MS);
+        const endSlot = Math.round((new Date(task.deadline) - windowStart) / HALF_HOUR_MS);
+        const clipStartSlot = Math.max(0, startSlot);
+        const clipEndSlot = Math.min(totalSlots, endSlot);
+
+        let dayCells = days.map(d => {
+          const isToday = midnight(d).getTime() === midnight(today).getTime();
+          const style = isToday ? ` style="--now-line-left:${nowPct}%;"` : '';
+          return `<div class="tl-day-cell ${isToday?'is-today':''}"${style}></div>`;
+        }).join('');
+
+        let bar = '';
+        if (clipEndSlot > clipStartSlot){
+          const left = clipStartSlot * slotW;
+          const width = Math.max(10, (clipEndSlot - clipStartSlot) * slotW - 3);
+          const color = urgencyColor(urgent);
+          const label = truncate(task.name || '(未命名任務)', 24);
+          const startLabel = fmtDateTime(task.createdAt);
+          const endLabel = fmtDateTime(task.deadline);
+          bar = `<div class="tl-bar" style="left:${left+2}px;width:${width}px;background:${color};" data-task-id="${task.id}" title="${escapeHtml(task.name)}\n開始：${startLabel}\n截止：${endLabel}">${escapeHtml(label)}</div>`;
+        }
+
+        const stars = preemptScore(task) > 0 ? `<div class="tl-stars">${starsHtml(preemptScore(task), 11)}</div>` : '';
+
+        return `<div class="tl-body-row">
+          <div class="tl-label-col mono" title="${escapeHtml(task.name)}">
+            <div>${escapeHtml(truncate(task.name||'(未命名任務)', 18))}</div>
+            ${stars}
+          </div>
+          <div class="tl-score-col mono" data-task-id="${task.id}">${value.toFixed(2)}</div>
+          <div class="tl-track" style="width:${TL_WINDOW_DAYS*TL_DAY_W}px;">
+            ${dayCells}
+            ${bar}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    const rangeLabel = `${days[0].getMonth()+1}/${days[0].getDate()} — ${days[days.length-1].getMonth()+1}/${days[days.length-1].getDate()}`;
+
+    return `
+      <div class="tl-controls">
+        <button class="tl-arrow" id="tlPrev">‹</button>
+        <button class="tl-arrow" id="tlNext">›</button>
+        <button class="tl-today-btn" id="tlToday">回到今天</button>
+        <span class="tl-range-label mono">${rangeLabel}</span>
+      </div>
+      <div class="tl-wrap">
+        <div class="tl-grid">
+          <div class="tl-header-row">
+            <div class="tl-label-col">任務</div>
+            <div class="tl-score-col">綜合評分</div>
+            ${headerCells}
+          </div>
+          ${rows}
+        </div>
+      </div>
+    `;
+  }
+
+  function bindTimelineEvents(){
+    document.getElementById('tlPrev').onclick = () => { state.timelineOffsetDays -= 7; render(); };
+    document.getElementById('tlNext').onclick = () => { state.timelineOffsetDays += 7; render(); };
+    document.getElementById('tlToday').onclick = () => { state.timelineOffsetDays = 0; render(); };
+    document.querySelectorAll('.tl-bar').forEach(el=>{
+      el.onclick = () => openTaskDetailModal(el.dataset.taskId);
+    });
+    document.querySelectorAll('.tl-score-col[data-task-id]').forEach(el=>{
+      el.style.cursor = 'pointer';
+      el.onclick = () => openTaskDetailModal(el.dataset.taskId);
+    });
+  }
+
+  // ---------- PAGE 2: QUADRANT ----------
+  function renderQuadrantPage(){
+    const activeTasks = state.tasks.filter(t => (t.status===STATUS.ADDED || t.status===STATUS.DOING));
+    const W = 560, H = 460, PAD = 40;
+    const plotW = W - PAD*2, plotH = H - PAD*2;
+
+    function toSvgX(imp){ return PAD + (imp/5)*plotW; }
+    function toSvgY(urg){ return PAD + (1 - urg/10)*plotH; } // urgent at top, domain 0-10
+
+    const points = activeTasks.map(t => {
+      let urg = urgentScoreRaw(t);
+      const overdue = urg === null;
+      if (overdue) urg = 10; // maximally urgent when overdue
+      const imp = importantScore(t);
+      const r = 6 + imp * 2; // size encodes importance
+      return { task: t, imp, urg, overdue, cx: toSvgX(imp), cy: toSvgY(urg), ox: toSvgX(imp), oy: toSvgY(urg), r };
+    });
+
+    resolveCollisions(points, PAD, W-PAD, PAD, H-PAD);
+
+    let dots = points.map(p => {
+      const color = p.overdue ? '#E8544A' : urgencyColor(p.urg);
+      const displaced = Math.hypot(p.cx-p.ox, p.cy-p.oy) > 1.5;
+      const link = displaced ? `<line x1="${p.ox}" y1="${p.oy}" x2="${p.cx}" y2="${p.cy}" stroke="#AEB4C2" stroke-width="1" stroke-dasharray="2 2"/>` : '';
+      return `<g class="quad-point" data-task-id="${p.task.id}" data-name="${escapeHtml(p.task.name||'(未命名任務)')}">
+        ${link}
+        <circle cx="${p.cx}" cy="${p.cy}" r="${p.r}" fill="${color}" fill-opacity="0.9" stroke="${p.overdue?'#ffffff':'none'}" stroke-width="2.5"/>
+        ${p.overdue ? `<circle cx="${p.cx}" cy="${p.cy}" r="${p.r+2.5}" fill="none" stroke="#E8544A" stroke-width="1"/>` : ''}
+      </g>`;
+    }).join('');
+
+    const svg = `
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="overflow:visible">
+        <line x1="${PAD}" y1="${PAD}" x2="${PAD}" y2="${H-PAD}" stroke="rgba(30,30,30,0.18)" stroke-width="1"/>
+        <line x1="${PAD}" y1="${H-PAD}" x2="${W-PAD}" y2="${H-PAD}" stroke="rgba(30,30,30,0.18)" stroke-width="1"/>
+        <line x1="${toSvgX(2.5)}" y1="${PAD}" x2="${toSvgX(2.5)}" y2="${H-PAD}" stroke="rgba(30,30,30,0.15)" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="${PAD}" y1="${toSvgY(5)}" x2="${W-PAD}" y2="${toSvgY(5)}" stroke="rgba(30,30,30,0.15)" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="${toSvgX(2.5)}" y="${PAD-10}" fill="#6C757D" font-size="12" text-anchor="middle" font-family="Space Grotesk">緊急</text>
+        <text x="${toSvgX(2.5)}" y="${H-PAD+22}" fill="#6C757D" font-size="12" text-anchor="middle" font-family="Space Grotesk">不急</text>
+        <text x="${PAD-4}" y="${toSvgY(5)-8}" fill="#6C757D" font-size="12" text-anchor="start" font-family="Space Grotesk">不重要</text>
+        <text x="${W-PAD+4}" y="${toSvgY(5)-8}" fill="#6C757D" font-size="12" text-anchor="end" font-family="Space Grotesk">重要</text>
+        ${dots}
+      </svg>
+    `;
+
+    const emptyNote = points.length===0 ? `<div class="empty-state">目前沒有進行中的任務可顯示於象限圖。</div>` : '';
+
+    return `
+      <div class="quad-wrap" style="position:relative;">
+        <div class="quad-svg-box">${svg}</div>
+        <div class="quad-legend">
+          <div class="lg-title">圖例</div>
+          點的<b>顏色</b>代表緊急程度（由低到高）：
+          <div class="legend-scale"></div>
+          <div style="display:flex;justify-content:space-between;"><span>不急</span><span>緊急</span></div>
+          <div style="margin-top:10px;">點的<b>大小</b>代表重要程度，越大越重要。</div>
+          <div style="margin-top:10px;">白色描邊代表任務已<b>逾期</b>。</div>
+          <div style="margin-top:10px;">點擊任一個點可進入該任務編輯頁面，調整內容或截止時間。</div>
+        </div>
+        ${emptyNote}
+        <div class="quad-tooltip" id="quadTooltip"></div>
+      </div>
+    `;
+  }
+
+  function bindQuadrantEvents(){
+    const tooltip = document.getElementById('quadTooltip');
+    document.querySelectorAll('.quad-point').forEach(el=>{
+      el.onclick = () => openTaskDetailModal(el.dataset.taskId);
+      el.onmousemove = (e) => {
+        tooltip.textContent = el.dataset.name;
+        tooltip.style.left = (e.pageX - e.currentTarget.closest('.quad-wrap').getBoundingClientRect().left + 12) + 'px';
+        tooltip.style.top = (e.pageY - e.currentTarget.closest('.quad-wrap').getBoundingClientRect().top + 8) + 'px';
+        tooltip.style.opacity = 1;
+      };
+      el.onmouseleave = () => { tooltip.style.opacity = 0; };
+    });
+  }
+
+  // ---------- PAGE 3: LIST ----------
+  function renderListPage(){
+    const mode = state.listSortMode;
+
+    function sortList(list){
+      const arr = [...list];
+      if (mode === 'added'){
+        arr.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else if (mode === 'value'){
+        arr.sort((a,b) => computeValue(b, state.weights) - computeValue(a, state.weights));
+      } else if (mode === 'preempt'){
+        arr.sort((a,b) => {
+          const pDiff = preemptScore(b) - preemptScore(a);
+          if (pDiff !== 0) return pDiff;
+          return computeValue(b, state.weights) - computeValue(a, state.weights);
+        });
+      } else if (mode === 'scaleAsc'){
+        arr.sort((a,b) => {
+          const sDiff = missionScale(a) - missionScale(b); // small first
+          if (sDiff !== 0) return sDiff;
+          return computeValue(b, state.weights) - computeValue(a, state.weights);
+        });
+      } else if (mode === 'scaleDesc'){
+        arr.sort((a,b) => {
+          const sDiff = missionScale(b) - missionScale(a); // large first
+          if (sDiff !== 0) return sDiff;
+          return computeValue(b, state.weights) - computeValue(a, state.weights);
+        });
+      } else if (mode === 'remaining'){
+        arr.sort((a,b) => {
+          const rDiff = remainingHours(a) - remainingHours(b); // least time remaining first
+          if (rDiff !== 0) return rDiff;
+          return computeValue(b, state.weights) - computeValue(a, state.weights);
+        });
+      }
+      return arr;
+    }
+
+    const undone = sortList(state.tasks.filter(t => t.status !== STATUS.DONE));
+    const done = sortList(state.tasks.filter(t => t.status === STATUS.DONE));
+
+    // Each mode defines its own column set (label, fixed width or null for flexible)
+    // The SAME array drives both the header row and every body row, so they can never drift out of alignment.
+    const columnDefs = {
+      added:     [['添加時間','170px'], ['任務名稱',null], ['任務規模','70px'], ['狀態','90px']],
+      value:     [['綜合評分','90px'],  ['任務名稱',null], ['任務規模','70px'], ['狀態','90px']],
+      preempt:   [['臨時優先','120px'], ['綜合評分','70px'], ['任務名稱',null], ['任務規模','70px'], ['狀態','90px']],
+      scaleAsc:  [['任務規模','70px'],  ['任務名稱',null], ['任務截止日期','160px'], ['狀態','90px']],
+      scaleDesc: [['任務規模','70px'],  ['任務名稱',null], ['任務截止日期','160px'], ['狀態','90px']],
+      remaining: [['剩餘時間','110px'], ['任務名稱',null], ['任務規模','70px'], ['狀態','90px']]
+    };
+    const cols = columnDefs[mode];
+    const gridTemplate = cols.map(([,w]) => w || '1fr').join(' ');
+
+    function scaleCell(t){ return `<span class="mono" style="text-align:center;">${MISSION_SCALE_SHORT[missionScale(t)] || '-'}</span>`; }
+    function nameCell(t){ return `<span class="list-name">${escapeHtml(t.name || '(未命名任務)')}</span>`; }
+    function statusCell(t){ return `<span class="status-chip ${statusChipClass(t.status)}">${t.status}</span>`; }
+
+    function rowCells(t){
+      const valueStr = computeValue(t, state.weights).toFixed(2);
+      if (mode === 'added'){
+        return [`<span class="mono list-dim">${fmtDateTime(t.createdAt)}</span>`, nameCell(t), scaleCell(t), statusCell(t)];
+      }
+      if (mode === 'value'){
+        return [`<span class="mono">${valueStr}</span>`, nameCell(t), scaleCell(t), statusCell(t)];
+      }
+      if (mode === 'preempt'){
+        return [starsHtml(preemptScore(t), 13), `<span class="mono">${valueStr}</span>`, nameCell(t), scaleCell(t), statusCell(t)];
+      }
+      if (mode === 'scaleAsc' || mode === 'scaleDesc'){
+        return [scaleCell(t), nameCell(t), `<span class="mono list-dim">${fmtDateTime(t.deadline)}</span>`, statusCell(t)];
+      }
+      // remaining
+      let remainCellHtml;
+      if (t.status === STATUS.DONE){
+        remainCellHtml = `<span class="mono" style="color:#2FAF9B; font-weight:700;">N.A</span>`;
+      } else {
+        const remainColor = urgencyColor(urgentScoreForFormula(t));
+        remainCellHtml = `<span class="mono" style="color:${remainColor}; font-weight:700;">${formatRemainingTime(t)}</span>`;
+      }
+      return [remainCellHtml, nameCell(t), scaleCell(t), statusCell(t)];
+    }
+
+    function rowHtml(t){
+      const cells = rowCells(t).map(c => `<div class="list-cell">${c}</div>`).join('');
+      return `<div class="list-row" data-task-id="${t.id}" style="grid-template-columns:${gridTemplate};">${cells}</div>`;
+    }
+
+    function rowsHtml(list, emptyMsg){
+      if (list.length === 0){
+        return `<div class="empty-state" style="padding:28px 20px;">${emptyMsg}</div>`;
+      }
+      return `<div class="list-table">${list.map(rowHtml).join('')}</div>`;
+    }
+
+    const headerRow = `<div class="list-header-row" style="grid-template-columns:${gridTemplate};">${cols.map(([label]) => `<div class="list-cell">${label}</div>`).join('')}</div>`;
+
+    return `
+      <div class="list-toolbar">
+        <label class="list-toolbar-label" for="listSortSelect">排序方式</label>
+        <select id="listSortSelect" class="list-sort-select">
+          <option value="added" ${mode==='added'?'selected':''}>A. 最後添加(預設)</option>
+          <option value="value" ${mode==='value'?'selected':''}>B. 綜合評分</option>
+          <option value="preempt" ${mode==='preempt'?'selected':''}>C. 臨時優先</option>
+          <option value="scaleAsc" ${mode==='scaleAsc'?'selected':''}>D. 小任務優先</option>
+          <option value="scaleDesc" ${mode==='scaleDesc'?'selected':''}>E. 大任務優先</option>
+          <option value="remaining" ${mode==='remaining'?'selected':''}>F. 剩餘時間</option>
+        </select>
+      </div>
+      <div class="list-section">
+        <h3 class="list-section-title">未完成列表 <span class="list-count">${undone.length}</span></h3>
+        ${headerRow}
+        ${rowsHtml(undone, '目前沒有未完成的任務。')}
+      </div>
+      <div class="list-section" style="margin-top:28px;">
+        <h3 class="list-section-title">已完成列表 <span class="list-count">${done.length}</span></h3>
+        ${headerRow}
+        ${rowsHtml(done, '尚未有已完成的任務。')}
+      </div>
+    `;
+  }
+
+  function bindListEvents(){
+    document.querySelectorAll('.list-row').forEach(el=>{
+      el.onclick = () => openTaskDetailModal(el.dataset.taskId);
+    });
+    const sortSelect = document.getElementById('listSortSelect');
+    if (sortSelect){
+      sortSelect.onchange = () => { state.listSortMode = sortSelect.value; render(); };
+    }
+  }
+
+  // ---------- PAGE 4: WEIGHT FORMULA ----------
+  function renderWeightsPage(){
+    const w = state.weights;
+    const fmt = (n) => (Math.round(n*100)/100).toString();
+    return `
+      <div class="weights-card">
+        <div class="weights-explainer mono">
+          (公式說明：重要性 * 重要性權重 + 緊急度 * 緊急度權重 + 拖延日數 * 拖延度權重 + 臨時加成 * 臨時權重 = 最終排序)
+        </div>
+        <div class="weights-current">
+          目前公式：重要性 * ${fmt(w.w1)} + 緊急度 * ${fmt(w.w2)} + 拖延日數 * ${fmt(w.w3)} + 臨時加成 * ${fmt(w.w4)}
+        </div>
+
+        <div class="weights-edit-title">修改權重</div>
+        <div class="weights-edit-formula">
+          目前公式：重要性 * <input class="weight-input mono" id="wInput1" value="${fmt(w.w1)}" />
+          + 緊急度 * <input class="weight-input mono" id="wInput2" value="${fmt(w.w2)}" />
+          + 拖延日數 * <input class="weight-input mono" id="wInput3" value="${fmt(w.w3)}" />
+          + 臨時加成 * <input class="weight-input mono" id="wInput4" value="${fmt(w.w4)}" />
+        </div>
+        <button class="btn-primary" id="saveWeightsBtn" style="margin-top:18px;">儲存新權重</button>
+      </div>
+    `;
+  }
+
+  function bindWeightsEvents(){
+    document.getElementById('saveWeightsBtn').onclick = () => {
+      const raw = {
+        w1: document.getElementById('wInput1').value.trim(),
+        w2: document.getElementById('wInput2').value.trim(),
+        w3: document.getElementById('wInput3').value.trim(),
+        w4: document.getElementById('wInput4').value.trim()
+      };
+      const isValidNumber = (s) => s.length > 0 && !isNaN(s) && !isNaN(parseFloat(s));
+      const allValid = Object.values(raw).every(isValidNumber);
+
+      if (!allValid){
+        showAlertDialog('輸入不是正確數值型態，請重新輸入！', () => {
+          render(); // reverts inputs back to the last saved values
+        });
+        return;
+      }
+
+      state.weights = {
+        w1: parseFloat(raw.w1),
+        w2: parseFloat(raw.w2),
+        w3: parseFloat(raw.w3),
+        w4: parseFloat(raw.w4)
+      };
+      saveWeights();
+      render();
+    };
+  }
+
+  // ---------- PAGE 5: GUIDE (使用說明) ----------
+  function renderGuidePage(){
+    const note = (text) => `<div class="guide-note">${text}</div>`;
+
+    return `
+      <div class="guide-page">
+
+        <div class="guide-card">
+          <div class="guide-intro">
+            本程式採用「艾森豪矩陣」紀錄事情的 <b>重要程度</b> &amp; <b>緊急程度</b>。
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">緊急程度是怎麼算出來的？</div>
+          <div class="guide-body">
+            緊急程度會自動依照「任務截止日期」的急迫性自動生成，新增任務時請設定每一個任務的截止日期。
+          </div>
+          ${note('預設會是新增任務後的 <b>24 小時</b> 截止。')}
+          ${note('緊急程度分數，走向約略是剩餘天數的反比，意在越接近期限時危險分數該指數提高。')}
+          ${note('但會依據下面一些情況斟酌調整，請新增任務時候思考下面的幾個面向。')}
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">重要程度分級</div>
+          <div class="guide-body">
+            請在新增一項任務時，判斷其任務重要性，這邊稱之「重要程度分級」；預設會停留在「記得處理」。
+          </div>
+          ${note('若是玩樂性質，可酌量減輕重要性。')}
+          ${note('若是拖延會造成嚴重後果，可加強重要性，譬如繳信用卡款或是繳交罰單。')}
+          ${note('若現階段不明顯，但對長遠有益處，建議增加重要性。')}
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">任務規模</div>
+          <div class="guide-body">
+            新增任務時，請也判斷該任務大概需要多少時間處理，這邊稱之「任務規模」；預設停留在「小任務」。
+          </div>
+          ${note('<b>小任務</b>：譬如線上可以完成、通知某人等等，可以在 30 分鐘內完成的。')}
+          ${note('<b>普通任務</b>：如果需要跑一趟、出去買東西、就近辦個事，可在兩小時內完成的。')}
+          ${note('<b>中等任務</b>：如果需要跑一趟（較遠），或者需要多人協商、協調，需要時間往返等。')}
+          ${note('<b>大型任務</b>：如果需要較長時間規劃，或者有多個子任務需求，總耗時會拖超過 1 天者。')}
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">動態調整與臨時加成</div>
+          <div class="guide-body">
+            新增後的任務，可以動態調整上面所有的設定值，或者有個「臨時加成」星等，進入任務選單可以選擇 1~5 顆星，提高該任務的總分。
+            <br/><br/>
+            分數依據「權重公式調整」頁面，動態分配權重，最後總分高者，排序在最上面（最迫切顯示給使用者，待處理的任務）。
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">「列表」頁面說明</div>
+          <div class="guide-body">
+            除了以「新增時間」、「綜合評分」等方式做排序，亦增加「臨時優先」、「小任務優先」、「大任務優先」幾種排序方式。
+          </div>
+          ${note('<b>臨時優先</b>：臨時提高的任務，也許在短期內是該被先重視處理的，所以會依據星等為主要排序原則先排在上面。')}
+          ${note('<b>小任務優先</b>：小任務通常是比較不重要的小事，但若一直被忽略，則將永遠都堆積到期限（危急時提高分數）才去做亦不好，建議有空可以觀察是否有小任務可以順手處理，避免堆積。')}
+          ${note('<b>大任務優先</b>：大任務通常是一些比較長遠的計畫，但若因為時間因子，不容易被堆積在緊急處理的事項而忽略，大任務優先可以觀察並審視自己比較長遠的規劃是否有按部就班。')}
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">「象限圖」頁面說明</div>
+          ${note('依「艾森豪矩陣」呈現重要 vs 緊急兩個層面的任務列舉，並可以點擊圈圈觀看該任務內容。')}
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-title">「時間軸」頁面說明</div>
+          ${note('依「綜合評分」高到低排列，橫軸是以時間軸顯示該任務創建的起始時間，到期限的色塊區域。若越接近期限，色彩將越紅。')}
+        </div>
+
+      </div>
+    `;
+  }
+
+  // ---------- NEW TASK MODAL ----------
+  function openNewTaskModal(){
+    const defaultDeadline = new Date(Date.now() + 24*3600*1000);
+    let chosenImportance = 2; // default: 記得處理
+    let chosenScale = 1; // default: 小任務
+    let showNameError = false;
+    let showImportanceError = false;
+    let showScaleError = false;
+
+    function draw(){
+      const root = document.getElementById('modalRoot');
+      root.innerHTML = `
+        <div class="modal-overlay" id="overlay">
+          <div class="modal-box">
+            <div class="modal-title">新增任務 <button class="modal-close" id="closeBtn">✕</button></div>
+
+            <div class="field ${showNameError?'invalid':''}">
+              <label>任務名稱</label>
+              <input type="text" id="fName" placeholder="輸入任務名稱" />
+              ${showNameError ? '<div class="err-text">請輸入任務名稱。</div>' : ''}
+            </div>
+
+            <div class="field">
+              <label>任務內容</label>
+              <textarea id="fContent" placeholder="輸入任務內容介紹"></textarea>
+            </div>
+
+            <div class="field">
+              <label>任務 deadline</label>
+              <input type="datetime-local" id="fDeadline" value="${toDatetimeLocalValue(defaultDeadline)}" />
+            </div>
+
+            <div class="field ${showImportanceError?'invalid':''}">
+              <label>重要程度分級</label>
+              <div class="importance-grid">
+                ${[1,2,3,4].map(v => `<div class="imp-btn" data-imp="${v}">${IMPORTANCE_LABELS[v]}</div>`).join('')}
+              </div>
+              ${showImportanceError ? '<div class="err-text">請選擇重要程度。</div>' : ''}
+            </div>
+
+            <div class="field ${showScaleError?'invalid':''}">
+              <label>任務規模</label>
+              <div class="importance-grid">
+                ${[1,2,3,4].map(v => `<div class="scale-btn" data-scale="${v}">${MISSION_SCALE_LABELS[v]}</div>`).join('')}
+              </div>
+              ${showScaleError ? '<div class="err-text">請選擇任務規模。</div>' : ''}
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn-ghost" id="cancelBtn">放棄</button>
+              <button class="btn-primary" id="saveBtn">存檔</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('overlay').onclick = (e) => { if (e.target.id==='overlay') closeModal(); };
+      document.getElementById('closeBtn').onclick = closeModal;
+      document.getElementById('cancelBtn').onclick = closeModal;
+      document.querySelectorAll('.imp-btn').forEach(el=>{
+        if (chosenImportance === parseInt(el.dataset.imp)) el.classList.add('selected');
+        el.onclick = () => {
+          chosenImportance = parseInt(el.dataset.imp);
+          showImportanceError = false;
+          // update selection + clear error in place, without re-rendering the whole modal
+          // (a full re-render would wipe whatever the user already typed into name/content)
+          document.querySelectorAll('.imp-btn').forEach(b => b.classList.remove('selected'));
+          el.classList.add('selected');
+          const field = el.closest('.field');
+          field.classList.remove('invalid');
+          const err = field.querySelector('.err-text');
+          if (err) err.remove();
+        };
+      });
+      document.querySelectorAll('.scale-btn').forEach(el=>{
+        if (chosenScale === parseInt(el.dataset.scale)) el.classList.add('selected');
+        el.onclick = () => {
+          chosenScale = parseInt(el.dataset.scale);
+          showScaleError = false;
+          document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+          el.classList.add('selected');
+          const field = el.closest('.field');
+          field.classList.remove('invalid');
+          const err = field.querySelector('.err-text');
+          if (err) err.remove();
+        };
+      });
+      document.getElementById('saveBtn').onclick = () => {
+        const nameVal = document.getElementById('fName').value.trim();
+        const contentVal = document.getElementById('fContent').value.trim();
+        const deadlineVal = document.getElementById('fDeadline').value;
+
+        showNameError = nameVal.length === 0;
+        showImportanceError = chosenImportance === null;
+        showScaleError = chosenScale === null;
+        if (showNameError || showImportanceError || showScaleError){ draw(); return; }
+
+        const deadlineDate = deadlineVal ? new Date(deadlineVal) : defaultDeadline;
+        const newTask = {
+          id: uid(),
+          name: nameVal,
+          content: contentVal,
+          deadline: deadlineDate.toISOString(),
+          importance: chosenImportance,
+          mission_scale: chosenScale,
+          status: STATUS.ADDED,
+          createdAt: new Date().toISOString(),
+          subRecords: [],
+          preempt_score: 0
+        };
+        state.tasks.push(newTask);
+        saveTasks();
+        closeModal();
+        render();
+      };
+    }
+    draw();
+  }
+
+  function closeModal(){
+    document.getElementById('modalRoot').innerHTML = '';
+  }
+
+  function showConfirmDialog(message, onConfirm){
+    const root = document.getElementById('confirmRoot');
+    root.innerHTML = `
+      <div class="modal-overlay" id="confirmOverlay" style="z-index:100;">
+        <div class="modal-box" style="max-width:380px; padding:22px;">
+          <div style="font-size:14px; line-height:1.7; color:var(--text); margin-bottom:20px; white-space:pre-line;">${escapeHtml(message)}</div>
+          <div class="modal-actions">
+            <button class="btn-ghost" id="confirmCancelBtn">取消</button>
+            <button class="btn-primary" id="confirmOkBtn" style="background:var(--red);">確定刪除</button>
+          </div>
+        </div>
+      </div>
+    `;
+    const closeConfirm = () => { root.innerHTML = ''; };
+    document.getElementById('confirmOverlay').onclick = (e) => { if (e.target.id==='confirmOverlay') closeConfirm(); };
+    document.getElementById('confirmCancelBtn').onclick = closeConfirm;
+    document.getElementById('confirmOkBtn').onclick = () => { closeConfirm(); onConfirm(); };
+  }
+
+  function showAlertDialog(message, onOk){
+    const root = document.getElementById('confirmRoot');
+    root.innerHTML = `
+      <div class="modal-overlay" id="alertOverlay" style="z-index:100;">
+        <div class="modal-box" style="max-width:380px; padding:22px;">
+          <div style="font-size:14px; line-height:1.7; color:var(--text); margin-bottom:20px; white-space:pre-line;">${escapeHtml(message)}</div>
+          <div class="modal-actions">
+            <button class="btn-primary" id="alertOkBtn">確定</button>
+          </div>
+        </div>
+      </div>
+    `;
+    const closeAlert = () => { root.innerHTML = ''; if (onOk) onOk(); };
+    document.getElementById('alertOverlay').onclick = (e) => { if (e.target.id==='alertOverlay') closeAlert(); };
+    document.getElementById('alertOkBtn').onclick = closeAlert;
+  }
+
+  // ---------- TASK DETAIL / EDIT MODAL ----------
+  function openTaskDetailModal(taskId){
+    let task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    let newSrDraft = null; // when adding a new subrecord row
+    let srError = false;
+    let draftPreempt = task.preempt_score || 0; // staged rating; only committed on 更新任務
+    let draftImportance = task.importance; // staged; only committed on 更新任務
+    let draftScale = task.mission_scale || 1; // staged; only committed on 更新任務
+
+    function draw(){
+      task = state.tasks.find(t => t.id === taskId);
+      const root = document.getElementById('modalRoot');
+
+      const subRows = task.subRecords.map(sr => `
+        <div class="sr-row">
+          <div class="sr-ts mono">${fmtDateTime(sr.timestamp)}</div>
+          <div class="sr-content">${escapeHtml(sr.content)}</div>
+        </div>
+      `).join('');
+
+      let newSrRow = '';
+      if (newSrDraft !== null){
+        newSrRow = `
+          <div class="sr-row sr-new-row">
+            <div class="sr-ts mono">${fmtDateTime(new Date().toISOString())}</div>
+            <textarea id="srInput" placeholder="輸入子紀錄內容">${escapeHtml(newSrDraft)}</textarea>
+            <button class="sr-save-btn" id="srSaveBtn">存檔</button>
+          </div>
+          ${srError ? '<div class="err-text">子紀錄請詳實填入，不可為空。</div>' : ''}
+        `;
+      }
+
+      const canComplete = task.subRecords.length > 0 && task.status === STATUS.DOING;
+      const isDone = task.status === STATUS.DONE;
+
+      root.innerHTML = `
+        <div class="modal-overlay" id="overlay">
+          <div class="modal-box">
+            <div class="modal-title">
+              任務詳情
+              <button class="modal-close" id="closeBtn">✕</button>
+            </div>
+
+            <div style="margin-bottom:14px;">
+              <span class="status-badge ${statusChipClass(task.status)}">${task.status}</span>
+            </div>
+
+            <div class="field">
+              <label>任務名稱</label>
+              <input type="text" id="fName" value="${escapeHtml(task.name)}" ${isDone?'disabled':''} />
+            </div>
+
+            <div class="field">
+              <label>任務內容</label>
+              <textarea id="fContent" ${isDone?'disabled':''}>${escapeHtml(task.content)}</textarea>
+            </div>
+
+            <div class="field">
+              <label>任務 deadline</label>
+              <input type="datetime-local" id="fDeadline" value="${toDatetimeLocalValue(new Date(task.deadline))}" ${isDone?'disabled':''} />
+            </div>
+
+            <div class="field">
+              <label>重要程度分級</label>
+              <div class="importance-grid">
+                ${[1,2,3,4].map(v => `<div class="imp-btn ${draftImportance===v?'selected':''}" data-imp="${v}" ${isDone?'style="pointer-events:none;opacity:.5;"':''}>${IMPORTANCE_LABELS[v]}</div>`).join('')}
+              </div>
+            </div>
+
+            <div class="field">
+              <label>任務規模</label>
+              <div class="importance-grid">
+                ${[1,2,3,4].map(v => `<div class="scale-btn ${draftScale===v?'selected':''}" data-scale="${v}" ${isDone?'style="pointer-events:none;opacity:.5;"':''}>${MISSION_SCALE_LABELS[v]}</div>`).join('')}
+              </div>
+            </div>
+
+            <div class="field">
+              <label>臨時加成 (preempt_score)</label>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div id="preemptStars">
+                  ${[1,2,3,4,5].map(i => `<span class="star-click" data-star="${i}" style="font-size:22px;margin-right:2px;cursor:${isDone?'default':'pointer'};color:${i<=draftPreempt?'#e8c53d':'#D8DCE3'};">★</span>`).join('')}
+                </div>
+                ${!isDone ? '<button class="btn-ghost" id="clearPreemptBtn" style="padding:6px 14px; font-size:12px;">取消加成</button>' : ''}
+              </div>
+            </div>
+
+            ${!isDone ? `<div class="modal-actions" style="margin-top:6px;">
+              <button class="btn-primary" id="updateBtn">更新任務</button>
+            </div>` : ''}
+
+            <div class="subrecord-panel">
+              <div class="subrecord-header">
+                <h4>子紀錄</h4>
+                ${(!isDone && newSrDraft===null) ? '<button class="sr-add-btn" id="addSrBtn">＋ 新增子紀錄</button>' : ''}
+              </div>
+              ${subRows || (newSrDraft===null ? '<div style="color:var(--text-dim);font-size:12.5px;">尚無子紀錄。</div>' : '')}
+              ${newSrRow}
+              ${canComplete ? '<button class="btn-complete" id="completeBtn">標記為已完成</button>' : ''}
+            </div>
+
+            <div style="margin-top:22px; border-top:1px solid var(--line); padding-top:16px;">
+              <button class="btn-delete" id="deleteTaskBtn">刪除任務</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('overlay').onclick = (e) => { if (e.target.id==='overlay') closeModal(); };
+      document.getElementById('closeBtn').onclick = closeModal;
+
+      if (!isDone){
+        document.querySelectorAll('.imp-btn').forEach(el=>{
+          el.onclick = () => {
+            draftImportance = parseInt(el.dataset.imp);
+            document.querySelectorAll('.imp-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+          };
+        });
+        document.querySelectorAll('.scale-btn').forEach(el=>{
+          el.onclick = () => {
+            draftScale = parseInt(el.dataset.scale);
+            document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+          };
+        });
+        document.getElementById('updateBtn').onclick = () => {
+          const nameVal = document.getElementById('fName').value.trim();
+          const contentVal = document.getElementById('fContent').value.trim();
+          const deadlineVal = document.getElementById('fDeadline').value;
+          if (nameVal.length === 0) { document.getElementById('fName').focus(); return; }
+          task.name = nameVal;
+          task.content = contentVal;
+          if (deadlineVal) task.deadline = new Date(deadlineVal).toISOString();
+          task.preempt_score = draftPreempt;
+          task.importance = draftImportance;
+          task.mission_scale = draftScale;
+          saveTasks();
+          render();
+          draw();
+        };
+        document.querySelectorAll('.star-click').forEach(el=>{
+          el.onclick = () => {
+            draftPreempt = parseInt(el.dataset.star);
+            document.querySelectorAll('.star-click').forEach(s=>{
+              s.style.color = parseInt(s.dataset.star) <= draftPreempt ? '#e8c53d' : '#D8DCE3';
+            });
+          };
+        });
+        const clearPreemptBtn = document.getElementById('clearPreemptBtn');
+        if (clearPreemptBtn){
+          clearPreemptBtn.onclick = () => {
+            draftPreempt = 0;
+            document.querySelectorAll('.star-click').forEach(s=>{ s.style.color = '#D8DCE3'; });
+          };
+        }
+        const addSrBtn = document.getElementById('addSrBtn');
+        if (addSrBtn){
+          addSrBtn.onclick = () => { newSrDraft = ''; srError=false; draw(); };
+        }
+        const srSaveBtn = document.getElementById('srSaveBtn');
+        if (srSaveBtn){
+          srSaveBtn.onclick = () => {
+            const val = document.getElementById('srInput').value.trim();
+            if (val.length === 0){ srError = true; draw(); return; }
+            task.subRecords.push({ id: uid(), timestamp: new Date().toISOString(), content: val });
+            if (task.status === STATUS.ADDED) task.status = STATUS.DOING;
+            newSrDraft = null; srError = false;
+            saveTasks();
+            render();
+            draw();
+          };
+        }
+        const completeBtn = document.getElementById('completeBtn');
+        if (completeBtn){
+          completeBtn.onclick = () => {
+            task.status = STATUS.DONE;
+            saveTasks();
+            render();
+            draw();
+          };
+        }
+      }
+
+      document.getElementById('deleteTaskBtn').onclick = () => {
+        showConfirmDialog('確定刪除任務？任務所有相關紀錄將無法復原！', () => {
+          state.tasks = state.tasks.filter(t => t.id !== taskId);
+          saveTasks();
+          closeModal();
+          render();
+        });
+      };
+    }
+    draw();
+  }
+
+  // ---------- init ----------
+  async function init(){
+    await loadTasks();
+    render();
+  }
+  init();
+})();
+</script>
+<div id="modalRoot"></div>
+<div id="confirmRoot"></div>
