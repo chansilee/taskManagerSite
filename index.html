@@ -324,6 +324,12 @@
   .sr-row:last-child{ border-bottom:none; }
   .sr-ts{ width:132px; flex-shrink:0; color: var(--text-dim); font-size:11px; padding-top:8px; }
   .sr-content{ flex:1; font-size:13px; padding-top:6px; white-space:pre-wrap; color: var(--text); }
+  .sr-delete-btn{
+    background: transparent; border:1px solid rgba(232,84,74,0.4); color: var(--red);
+    font-size:11px; font-weight:700; padding: 5px 10px; border-radius:10px; cursor:pointer;
+    flex-shrink:0; margin-top:5px; transition: all .15s ease;
+  }
+  .sr-delete-btn:hover{ background: rgba(232,84,74,0.12); }
   .sr-new-row textarea{
     flex:1; background: rgba(255,255,255,0.55); border:1px solid var(--field-border); color:var(--text);
     border-radius:12px; padding:7px 9px; font-size:13px; min-height:40px; font-family:'Inter',sans-serif;
@@ -1208,11 +1214,13 @@
     function draw(){
       task = state.tasks.find(t => t.id === taskId);
       const root = document.getElementById('modalRoot');
+      const isDone = task.status === STATUS.DONE;
 
       const subRows = task.subRecords.map(sr => `
         <div class="sr-row">
           <div class="sr-ts mono">${fmtDateTime(sr.timestamp)}</div>
           <div class="sr-content">${escapeHtml(sr.content)}</div>
+          ${!isDone ? `<button class="sr-delete-btn" data-sr-id="${sr.id}">刪除紀錄</button>` : ''}
         </div>
       `).join('');
 
@@ -1229,7 +1237,6 @@
       }
 
       const canComplete = task.subRecords.length > 0 && task.status === STATUS.DOING;
-      const isDone = task.status === STATUS.DONE;
 
       root.innerHTML = `
         <div class="modal-overlay" id="overlay">
@@ -1377,6 +1384,20 @@
             draw();
           };
         }
+        document.querySelectorAll('.sr-delete-btn').forEach(el=>{
+          el.onclick = () => {
+            const srId = el.dataset.srId;
+            showConfirmDialog('確定刪除這筆子紀錄？此動作無法復原！', () => {
+              task.subRecords = task.subRecords.filter(sr => sr.id !== srId);
+              if (task.subRecords.length === 0 && task.status === STATUS.DOING){
+                task.status = STATUS.ADDED; // no records left, fall back to the previous status
+              }
+              saveTasks();
+              render();
+              draw();
+            });
+          };
+        });
       }
 
       document.getElementById('deleteTaskBtn').onclick = () => {
