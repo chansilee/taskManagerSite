@@ -352,7 +352,6 @@
   const IMPORTANCE_LABELS = {1:'可有可無', 2:'記得處理', 3:'有點重要', 4:'非常重要'};
   const STATUS = { ADDED:'已添加', DOING:'處理中', DONE:'已完成' };
   const DEFAULT_WEIGHTS = { w1: 1.0, w2: 1.0, w3: 0.2, w4: 1.0 };
-  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyO6m0z_NPYwMOg6paQhm7rKYmos3LswZRkVX96ABgJatwVJett8pgK34JEhzqQSkhW/exec';
 
   let state = {
     tasks: [],
@@ -363,35 +362,7 @@
     loaded: false,
     storageAvailable: true
   };
-  // -----------add windows.storage from google drive ----------------
-  window.storage = {
-    async get(key, defaultValue) {
-      try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'get', key: key })
-        });
-        const data = await response.json();
-        return data.value ? { value: data.value } : null;
-      } catch (e) {
-        console.error('GAS 讀取失敗', e);
-        throw e;
-      }
-    },
-    
-    async set(key, value, options) {
-      try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'set', key: key, value: value })
-        });
-        return await response.json();
-      } catch (e) {
-        console.error('GAS 寫入失敗', e);
-        throw e;
-      }
-    }
-  };
+
   // ---------- storage ----------
   async function loadTasks(){
     if (typeof window.storage === 'undefined'){
