@@ -595,8 +595,7 @@
   function renderTimelinePage(){
     const activeTasks = state.tasks.filter(t => (t.status===STATUS.ADDED || t.status===STATUS.DOING));
     const visible = activeTasks
-      .map(t => ({ task: t, urgent: urgentScoreRaw(t), value: computeValue(t, state.weights) }))
-      .filter(x => x.urgent !== null); // overdue tasks show no block, so we omit them from this view
+      .map(t => ({ task: t, urgent: urgentScoreForFormula(t), value: computeValue(t, state.weights) }));
 
     visible.sort((a,b) => b.value - a.value);
 
@@ -618,7 +617,7 @@
 
     let rows = '';
     if (visible.length === 0){
-      rows = `<div class="empty-state">目前沒有可顯示的任務區塊。<br/>（已逾期或已完成的任務不會顯示在時間軸上）</div>`;
+      rows = `<div class="empty-state">目前沒有可顯示的任務區塊。<br/>（已完成的任務不會顯示在時間軸上）</div>`;
     } else {
       const HALF_HOUR_MS = 30 * 60 * 1000;
       const SLOTS_PER_DAY = 48; // 24h / 30min
